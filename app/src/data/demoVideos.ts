@@ -44,6 +44,20 @@ export const DEMO_VIDEOS: Record<string, string> = {
   'Full flexibility routine':          'g7Uhp5tphAs',
   'High lunge stretch':                'eBdfCX5XnX4',
 
+  // New conditioning exercises
+  'Dead bug':                          '',
+  'Bird dog':                          'wiFNA3sqjCA',
+  'Glute bridge':                      'OUgsJ8-Vi0E',
+  'Side plank':                        '_rdfjFSFKMY',
+  'Thread the needle':                 '',
+  'Diamond push-ups':                  '',
+  'Elevated pike push-ups':            'yQXnOuQqKYc',
+  'L-sit tuck hold':                   '',
+  'L-sit':                             '',
+  'Active pike compression':           '',
+  'HSPU negatives':                    '',
+  'Wall-facing handstand':             '',
+
   // Phase 2 — Wall refinement
   'Pirouette bail':                    '0ixJk3KMk7o',
   'Fingertip pressure drill':          'Z-lFEfQKvQk',

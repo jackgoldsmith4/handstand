@@ -31,6 +31,43 @@ export const EXERCISE_DESCRIPTIONS: Record<string, string> = {
   'Fingertip push-ups':
     `Perform a standard push-up but with only your fingertips contacting the floor instead of flat palms. This builds the finger and wrist strength needed to balance in a handstand.`,
 
+  // ── Conditioning & Strength ────────────────────────────────────────────────
+  'Dead bug':
+    `Lie on your back with arms pointing straight up and hips and knees at 90°. Press your lower back firmly into the floor, then slowly lower opposite arm and leg toward the floor while keeping the back flat. Return and switch sides — this is the dynamic anti-extension work that keeps your hollow shape intact when your legs move in a handstand.`,
+
+  'Bird dog':
+    `From hands and knees, brace your core and slowly extend your right arm and left leg until both are straight and level with your spine. Hold 3 seconds, return with control, and switch sides. Focus on not letting your hips rotate — this trains the posterior chain and anti-rotation stability that keep a handstand from corkscrew-drifting.`,
+
+  'Glute bridge':
+    `Lie on your back with knees bent and feet flat. Drive your hips to the ceiling by squeezing your glutes, hold 2–3 seconds at the top, then lower slowly. Strong glutes are the primary hip extensors — without them you'll pike at the hips in a handstand instead of achieving full body extension.`,
+
+  'Side plank':
+    `Lie on your side with forearm on the floor, elbow under shoulder, and feet stacked. Lift your hips into a straight line from head to feet and hold. This builds the obliques and lateral chain that resist sideways tipping — one of the most common reasons a handstand collapses. Progress to straight-arm side plank as it gets easier.`,
+
+  'Thread the needle':
+    `From hands and knees, reach one arm under your body and rotate until that shoulder touches the floor, then open back up and reach that arm overhead. This mobility drill unlocks thoracic rotation — without it you'll drift and corkscrew in every handstand attempt.`,
+
+  'Diamond push-ups':
+    `Place hands under your chest with index fingers and thumbs forming a diamond shape, then perform a push-up. This directly targets the triceps, the primary lockout muscle for handstand push-ups and the muscle that fires hardest when you snap your elbows straight at the top of a handstand.`,
+
+  'Elevated pike push-ups':
+    `Set up like a downward-dog pike push-up but with your feet elevated on a box or chair — the higher the elevation, the more the load shifts toward your shoulders and mimics the handstand push-up angle. Keep hips high and lower the top of your head toward the floor.`,
+
+  'L-sit tuck hold':
+    `Sit on the floor with hands beside your hips. Press down through your palms to lift your hips off the floor and hold your knees tucked toward your chest. This builds simultaneous shoulder depression, scapular stability, and hip flexor compression — the exact combo needed for controlled handstand entry and exits.`,
+
+  'L-sit':
+    `From an L-sit tuck hold, extend both legs straight out in front at 90° to your torso and hold. This is a key compression strength exercise — the hip flexors must actively hold the legs against gravity, which directly improves your ability to control leg position in a handstand and eventually press up with control.`,
+
+  'Active pike compression':
+    `Sit on the floor with legs straight in front. Without bending your knees, actively lift your legs as high off the floor as possible using only your hip flexors — no momentum. Hold 2–5 seconds, lower, repeat. This isolated hip flexor strength is the most commonly missing prerequisite for controlled handstand entry and balance corrections.`,
+
+  'HSPU negatives':
+    `Kick up to a chest-to-wall handstand, then slowly lower your head toward the floor over 3–5 seconds. Do not push back up — step down and reset. This eccentric overload builds the overhead pressing strength needed for handstand push-ups while your body is already adapted to the inverted position.`,
+
+  'Wall-facing handstand':
+    `Face the wall with hands about 5 cm away, kick up so your belly faces the wall. This forces a truly straight body position — the wall prevents the banana arch that back-to-wall practice allows. Lock arms, squeeze glutes, tuck your ribs down, and push tall through your shoulders.`,
+
   // ── Phase 1 — Foundation ───────────────────────────────────────────────────
   'Quadruped rocking':
     `On all fours, slowly rock forward until your shoulders pass over your wrists and your weight shifts from the heel of your hand to your knuckles. This trains the exact feedback loop you'll use to balance in a handstand.`,
