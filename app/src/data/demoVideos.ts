@@ -49,6 +49,9 @@ export const DEMO_VIDEOS: Record<string, string> = {
   'Pigeon pose':                          'JGEHLp-Bhzc',
   'Shoulder dislocates (towel)':          '3AVP9GYbgPw',
   'Full shoulder mobility circuit':       '3AVP9GYbgPw',
+  'Shoulder mobility circuit':            '3AVP9GYbgPw',
+  'Shoulder shrugs in handstand':         '95pIvycc-Q0',
+  'Freestanding kick-up attempts':        'CEH9wkFTVU8',
   'Full flexibility routine':            'g7Uhp5tphAs',
 
   // Phase 2 — Wall refinement
