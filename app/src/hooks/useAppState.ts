@@ -23,9 +23,14 @@ function saveState(state: AppState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
+function localDateString(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export function getCurrentTrainingDay(startDate: string | null): number {
   if (!startDate) return 1
-  const start = new Date(startDate)
+  // Append T00:00:00 so the string is parsed as LOCAL midnight, not UTC midnight
+  const start = new Date(startDate + 'T00:00:00')
   start.setHours(0, 0, 0, 0)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -46,7 +51,7 @@ export function useAppState() {
 
   const startChallenge = useCallback(() => {
     update(() => ({
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: localDateString(),
       progress: [],
     }))
   }, [update])
