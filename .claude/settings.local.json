@@ -95,7 +95,8 @@
       "WebFetch(domain:duckduckgo.com)",
       "WebFetch(domain:noembed.com)",
       "WebFetch(domain:barbend.com)",
-      "WebFetch(domain:vahvafitness.com)"
+      "WebFetch(domain:vahvafitness.com)",
+      "Bash(node:*)"
     ]
   }
 }
