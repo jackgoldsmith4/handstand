@@ -13,6 +13,29 @@ type Props = {
   onBack: () => void
 }
 
+function playDoneBeep() {
+  try {
+    const ctx = new AudioContext()
+    // Two-tone chime: high note then slightly lower
+    const tones = [880, 660]
+    tones.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const start = ctx.currentTime + i * 0.18
+      gain.gain.setValueAtTime(0.4, start)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3)
+      osc.start(start)
+      osc.stop(start + 0.3)
+    })
+  } catch {
+    // Audio not available — fail silently
+  }
+}
+
 function formatTime(s: number) {
   const m = Math.floor(s / 60)
   const sec = s % 60
@@ -53,6 +76,7 @@ export function ExerciseCard({ item, index, total, isLast, onDone, onSkip, onBac
       setRemaining(prev => {
         if (prev <= 1) {
           clearInterval(intervalRef.current!)
+          playDoneBeep()
           if (currentSet < totalSets) {
             setCurrentSet(s => s + 1)
             setTimerState('idle')

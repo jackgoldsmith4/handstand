@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DayPlan, DayProgress } from '../../types'
 import { ExerciseCard } from './ExerciseCard'
+import { useWakeLock } from '../../hooks/useWakeLock'
 
 type Props = {
   day: DayPlan
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export function ActiveSession({ day, progress, onCheck, onComplete, onBack }: Props) {
+  useWakeLock(true)
   const exercises = day.exercises
   const [currentIndex, setCurrentIndex] = useState(() => {
     // Resume at first unchecked exercise
