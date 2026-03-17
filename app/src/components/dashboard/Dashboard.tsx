@@ -111,7 +111,7 @@ export function Dashboard({ currentDay, currentDayPlan, currentDayProgress, comp
           <div className="px-4 py-6 text-center">
             <p className="text-2xl mb-2">😮‍💨</p>
             <p className="text-text font-medium">Rest Day</p>
-            <p className="text-subtle text-sm mt-1">Active recovery — walk, light stretch. Come back tomorrow.</p>
+            <p className="text-subtle text-sm mt-1">Wrist + shoulder recovery stretches (~5 min). No intensity.</p>
           </div>
         ) : (
           <div className="px-4 py-3">
@@ -143,7 +143,7 @@ export function Dashboard({ currentDay, currentDayPlan, currentDayProgress, comp
             }`}
             disabled={isCompleted}
           >
-            {isCompleted ? 'Rest Day Complete ✓' : 'Mark Rest Day Complete'}
+            {isCompleted ? 'Rest Day Complete ✓' : 'Begin Recovery Stretches'}
           </button>
         </div>
       ) : (

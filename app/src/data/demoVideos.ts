@@ -25,7 +25,7 @@ export const DEMO_VIDEOS: Record<string, string> = {
   'Frog stand':                        'SrYBD4yCI84',
   'Puppy pose':                        'KOFJ-JensFE',
   'Standing forward fold':             'g7Uhp5tphAs',
-  'Pike push-ups':                     'yQXnOuQqKYc',
+  'Pike push-ups':                     'x7_I5SUAd00',
   'Wall slides':                       'EugElNVC2BU',
   'Shoulder shrugs (all fours)':       'BBbQ1FUpewk',
   'Shoulder shrugs in plank':          '95pIvycc-Q0',

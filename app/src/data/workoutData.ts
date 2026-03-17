@@ -14,6 +14,19 @@ const e = (day: number, idx: number, name: string, detail: string, opts: Partial
 const wu = (day: number): ExerciseItem[] =>
   WRIST_WARMUP.map(w => ({ ...w, id: `d${day}-${w.id}` }))
 
+// Recovery exercises shown on rest days
+const REST_RECOVERY_BASE: Omit<ExerciseItem, 'id'>[] = [
+  { name: 'Wrist circles', detail: '30 sec each direction', isWarmup: false, isGoal: false, timerSeconds: 30 },
+  { name: 'Prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
+  { name: 'Reverse prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
+  { name: 'Overhead reach stretch', detail: '30 sec each arm', isWarmup: false, isGoal: false, timerSeconds: 30 },
+  { name: 'Puppy pose', detail: '60 sec', isWarmup: false, isGoal: false, timerSeconds: 60 },
+  { name: 'Shoulder dislocates (towel)', detail: '10 slow reps', isWarmup: false, isGoal: false },
+]
+
+export const restRecovery = (day: number): ExerciseItem[] =>
+  REST_RECOVERY_BASE.map((ex, i) => ({ ...ex, id: `d${day}-rec-${i}` }))
+
 // ─── PHASE 1: Days 1–33 ───────────────────────────────────────────────────────
 
 const phase1Label = 'Foundation & Conditioning'

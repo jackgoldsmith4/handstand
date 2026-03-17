@@ -13,10 +13,9 @@ type Props = {
   onBack: () => void
 }
 
-function playDoneBeep() {
-  try {
-    const ctx = new AudioContext()
-    // Two-tone chime: high note then slightly lower
+function playDoneBeep(ctx: AudioContext) {
+  // Resume in case browser suspended the context (common on mobile)
+  ctx.resume().then(() => {
     const tones = [880, 660]
     tones.forEach((freq, i) => {
       const osc = ctx.createOscillator()
@@ -31,9 +30,7 @@ function playDoneBeep() {
       osc.start(start)
       osc.stop(start + 0.3)
     })
-  } catch {
-    // Audio not available — fail silently
-  }
+  }).catch(() => {/* Audio not available */})
 }
 
 function formatTime(s: number) {
@@ -50,6 +47,7 @@ export function ExerciseCard({ item, index, total, isLast, onDone, onSkip, onBac
   const [currentSet, setCurrentSet] = useState(1)
   const [showVideo, setShowVideo] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
 
   const totalSets = item.sets && item.timerSeconds ? item.sets : 1
   const videoId = DEMO_VIDEOS[item.name]
@@ -70,13 +68,17 @@ export function ExerciseCard({ item, index, total, isLast, onDone, onSkip, onBac
 
   const startTimer = () => {
     if (timerState === 'running') return
+    // Create AudioContext here (user gesture) so browser allows sound later
+    if (!audioCtxRef.current) {
+      try { audioCtxRef.current = new AudioContext() } catch { /* not available */ }
+    }
     setTimerState('running')
     setRemaining(item.timerSeconds!)
     intervalRef.current = setInterval(() => {
       setRemaining(prev => {
         if (prev <= 1) {
           clearInterval(intervalRef.current!)
-          playDoneBeep()
+          if (audioCtxRef.current) playDoneBeep(audioCtxRef.current)
           if (currentSet < totalSets) {
             setCurrentSet(s => s + 1)
             setTimerState('idle')
