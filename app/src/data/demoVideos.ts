@@ -3,12 +3,15 @@
  * One entry per canonical exercise name — keys match `name` in ExerciseItem exactly.
  */
 export const DEMO_VIDEOS: Record<string, string> = {
+  // Shoulder warm-up
+  'Arm circles':                       '',
+  'Overhead reach stretch':            '',
+
   // Wrist warm-up
   'Wrist circles':                     '1ptcaLJLkeE',
-  'Kneeling wrist extension rocks':    '20w70zUTZik',
   'Prayer stretch':                    '1ptcaLJLkeE',
   'Reverse prayer stretch':            '20w70zUTZik',
-  'Quadruped forward rocks':           'BBbQ1FUpewk',
+  'Quadruped wrist rocks':             'BBbQ1FUpewk',
   'Fingers-back stretch':              '1ptcaLJLkeE',
   'Wrist flexion stretch':             '20w70zUTZik',
   'Knuckle roll-offs':                 'BBbQ1FUpewk',
@@ -24,7 +27,6 @@ export const DEMO_VIDEOS: Record<string, string> = {
   'Standing forward fold':             'g7Uhp5tphAs',
   'Pike push-ups':                     'yQXnOuQqKYc',
   'Wall slides':                       'EugElNVC2BU',
-  'High lunge hip flexor stretch':     'eBdfCX5XnX4',
   'Shoulder shrugs (all fours)':       'BBbQ1FUpewk',
   'Shoulder shrugs in plank':          '95pIvycc-Q0',
   'Shoulder shrugs in downward dog':   'BBbQ1FUpewk',

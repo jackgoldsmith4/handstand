@@ -54,7 +54,7 @@ export const WORKOUT_DATA: DayPlan[] = [
       e(2,5,'Side plank','2 × 20 sec each side', { sets: 2, timerSeconds: 20 }),
       e(2,6,'Wall slides','2 × 10', { sets: 2 }),
       e(2,7,'Frog stand','3 × max hold', { sets: 3 }),
-      e(2,8,'High lunge hip flexor stretch','30 sec each side', { timerSeconds: 30 }),
+      e(2,8,'High lunge stretch','30 sec each side', { timerSeconds: 30 }),
     ],
   },
   // ── Day 3 — REST ──
