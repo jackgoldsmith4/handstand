@@ -54,7 +54,6 @@ export function ProgressCalendar({ currentDay, progress, onSelectDay }: Props) {
           { color: 'bg-success/20 text-success', label: 'Done' },
           { color: 'bg-accent text-white', label: 'Today' },
           { color: 'bg-surface border-2 border-warning/50 text-warning', label: 'Milestone' },
-          { color: 'bg-border/50 text-muted', label: 'Rest' },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5">
             <div className={`w-4 h-4 rounded ${l.color} text-[8px] flex items-center justify-center font-bold`}>1</div>
