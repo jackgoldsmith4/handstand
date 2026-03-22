@@ -92,7 +92,7 @@ export function ProgressCalendar({ currentDay, progress, onSelectDay }: Props) {
               {selectedProg?.completedAt && (
                 <span className="text-xs text-success font-medium">Complete ✓</span>
               )}
-              {selectedDay >= currentDay && selectedPlan.type !== 'rest' && (
+              {!selectedProg?.completedAt && selectedPlan.type !== 'rest' && (
                 <button
                   onClick={() => onSelectDay(selectedDay)}
                   className="text-xs text-accent font-medium px-3 py-1.5 rounded-lg bg-accent/10"
