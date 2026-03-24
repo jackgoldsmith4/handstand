@@ -11,6 +11,5 @@ export const WRIST_WARMUP: ExerciseItem[] = [
   { id: 'wu-6', name: 'Quadruped wrist rocks', detail: '10 forward + 10 side-to-side', isWarmup: true, isGoal: false },
   { id: 'wu-7', name: 'Fingers-back stretch', detail: '10 reps + 10 sec hold', isWarmup: true, isGoal: false, timerSeconds: 10 },
   { id: 'wu-8', name: 'Wrist flexion stretch', detail: '10 reps + 10 sec hold', isWarmup: true, isGoal: false, timerSeconds: 10 },
-  { id: 'wu-9', name: 'Knuckle roll-offs', detail: '10 reps', isWarmup: true, isGoal: false },
   { id: 'wu-10', name: 'Fingertip push-ups', detail: '2 × 5', isWarmup: true, isGoal: false, sets: 2 },
 ]

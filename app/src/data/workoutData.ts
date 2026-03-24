@@ -16,7 +16,7 @@ const wu = (day: number): ExerciseItem[] =>
 
 // Recovery exercises shown on rest days
 const REST_RECOVERY_BASE: Omit<ExerciseItem, 'id'>[] = [
-  { name: 'Wrist circles', detail: '30 sec each direction', isWarmup: false, isGoal: false, timerSeconds: 30 },
+  { name: 'Wrist circles', detail: '10 each direction', isWarmup: false, isGoal: false },
   { name: 'Prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
   { name: 'Reverse prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
   { name: 'Overhead reach stretch', detail: '30 sec each arm', isWarmup: false, isGoal: false, timerSeconds: 30 },
