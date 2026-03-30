@@ -16,7 +16,7 @@ function loadState(): AppState {
     if (!raw) return defaultState
     const parsed = JSON.parse(raw) as AppState
     // backfill dayOffset for states saved before this field existed
-    return { dayOffset: 0, ...parsed }
+    return parsed.dayOffset == null ? { ...parsed, dayOffset: 0 } : parsed
   } catch {
     return defaultState
   }
