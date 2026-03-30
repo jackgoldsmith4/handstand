@@ -28,6 +28,7 @@ export default function App() {
     exportProgress,
     importProgress,
     resetProgress,
+    setCurrentDay,
   } = useAppState()
 
   const hasStarted = !!state.startDate
@@ -134,6 +135,8 @@ export default function App() {
           onImport={importProgress}
           onReset={handleReset}
           onClose={() => setShowSettings(false)}
+          currentDay={currentDay}
+          onSetCurrentDay={setCurrentDay}
         />
       )}
     </div>

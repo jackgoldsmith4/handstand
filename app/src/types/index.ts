@@ -31,6 +31,7 @@ export type DayProgress = {
 export type AppState = {
   startDate: string | null    // ISO date string for Day 1
   progress: DayProgress[]
+  dayOffset: number           // manual day adjustment (positive = ahead, negative = behind)
 }
 
 export type View = 'dashboard' | 'session' | 'calendar'

@@ -5,13 +5,16 @@ type Props = {
   onImport: (code: string) => boolean
   onReset: () => void
   onClose: () => void
+  currentDay: number
+  onSetCurrentDay: (day: number) => void
 }
 
-export function SettingsSheet({ onExport, onImport, onReset, onClose }: Props) {
+export function SettingsSheet({ onExport, onImport, onReset, onClose, currentDay, onSetCurrentDay }: Props) {
   const [importCode, setImportCode] = useState('')
   const [imported, setImported] = useState<boolean | null>(null)
   const [copied, setCopied] = useState(false)
   const [showReset, setShowReset] = useState(false)
+  const [dayInput, setDayInput] = useState(String(currentDay))
 
   const handleExport = () => {
     const code = onExport()
@@ -33,6 +36,50 @@ export function SettingsSheet({ onExport, onImport, onReset, onClose }: Props) {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-text">Settings</h3>
           <button onClick={onClose} className="text-subtle text-xl leading-none">✕</button>
+        </div>
+
+        {/* Current Day */}
+        <div className="mb-6">
+          <p className="text-sm font-medium text-text mb-1">Current Day</p>
+          <p className="text-xs text-subtle mb-3">Adjust which day of the program you're on. Calendar still advances automatically each day.</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                const next = Math.max(1, currentDay - 1)
+                setDayInput(String(next))
+                onSetCurrentDay(next)
+              }}
+              className="w-11 h-11 rounded-xl bg-surface border border-border text-text text-xl font-medium flex items-center justify-center"
+            >
+              −
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={dayInput}
+              onChange={e => setDayInput(e.target.value)}
+              onBlur={() => {
+                const parsed = parseInt(dayInput, 10)
+                if (!isNaN(parsed) && parsed >= 1 && parsed <= 100) {
+                  onSetCurrentDay(parsed)
+                } else {
+                  setDayInput(String(currentDay))
+                }
+              }}
+              className="flex-1 bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text text-center"
+            />
+            <button
+              onClick={() => {
+                const next = Math.min(100, currentDay + 1)
+                setDayInput(String(next))
+                onSetCurrentDay(next)
+              }}
+              className="w-11 h-11 rounded-xl bg-surface border border-border text-text text-xl font-medium flex items-center justify-center"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         {/* Export */}

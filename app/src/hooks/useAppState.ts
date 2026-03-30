@@ -7,13 +7,16 @@ const STORAGE_KEY = 'handstand_app_state'
 const defaultState: AppState = {
   startDate: null,
   progress: [],
+  dayOffset: 0,
 }
 
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultState
-    return JSON.parse(raw) as AppState
+    const parsed = JSON.parse(raw) as AppState
+    // backfill dayOffset for states saved before this field existed
+    return { dayOffset: 0, ...parsed }
   } catch {
     return defaultState
   }
@@ -27,7 +30,7 @@ function localDateString(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function getCurrentTrainingDay(startDate: string | null): number {
+export function getCurrentTrainingDay(startDate: string | null, dayOffset = 0): number {
   if (!startDate) return 1
   // Append T00:00:00 so the string is parsed as LOCAL midnight, not UTC midnight
   const start = new Date(startDate + 'T00:00:00')
@@ -35,7 +38,7 @@ export function getCurrentTrainingDay(startDate: string | null): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-  return Math.min(Math.max(diff + 1, 1), 100)
+  return Math.min(Math.max(diff + 1 + dayOffset, 1), 100)
 }
 
 export function useAppState() {
@@ -53,6 +56,7 @@ export function useAppState() {
     update(() => ({
       startDate: localDateString(),
       progress: [],
+      dayOffset: 0,
     }))
   }, [update])
 
@@ -127,7 +131,14 @@ export function useAppState() {
     update(() => defaultState)
   }, [update])
 
-  const currentDay = getCurrentTrainingDay(state.startDate)
+  const setCurrentDay = useCallback((day: number) => {
+    update(prev => {
+      const calendarDay = getCurrentTrainingDay(prev.startDate, 0)
+      return { ...prev, dayOffset: day - calendarDay }
+    })
+  }, [update])
+
+  const currentDay = getCurrentTrainingDay(state.startDate, state.dayOffset ?? 0)
   const currentDayPlan = WORKOUT_DATA.find(d => d.day === currentDay) ?? WORKOUT_DATA[0]
   const currentDayProgress = getDayProgress(currentDay)
   const completedDays = state.progress.filter(p => p.completedAt !== null).length
@@ -145,5 +156,6 @@ export function useAppState() {
     exportProgress,
     importProgress,
     resetProgress,
+    setCurrentDay,
   }
 }
