@@ -1,10 +1,10 @@
-# Handstand App
+# Movement App
 
-React + TypeScript + Vite PWA for a 100-day handstand training program.
+React + TypeScript + Vite PWA for a 100-day bodyweight mobility & strength program.
 
 ## Tech Stack
 - React 19, TypeScript, Tailwind CSS 3, Vite
-- State: custom `useAppState` hook + `localStorage` (key: `handstand_app_state`)
+- State: custom `useAppState` hook + `localStorage` (key: `movement_app_state`)
 - No external state management library
 
 ## Key Files
@@ -12,7 +12,7 @@ React + TypeScript + Vite PWA for a 100-day handstand training program.
 - `app/src/types/index.ts` — core types (`AppState`, `DayPlan`, etc.)
 - `app/src/components/shared/SettingsSheet.tsx` — settings modal
 - `app/src/App.tsx` — root component, wires everything together
-- `app/src/data/workoutData.ts` — 100-day workout plan array
+- `app/src/data/workoutData.ts` — generates the 100-day plan from a small set of reusable exercises (see `100_day_movement_plan.md` at the repo root for the design)
 
 ## Day Calculation
 `getCurrentTrainingDay(startDate, dayOffset)` in `useAppState.ts`:
@@ -34,3 +34,6 @@ React + TypeScript + Vite PWA for a 100-day handstand training program.
 - Backup / Restore via base64-encoded JSON
 - Reset All Progress
 - **Current Day** — +/− buttons and number input to shift the current day
+
+## Archived Program
+A previous 100-day handstand program lives at `/archive/handstand-program/` (plan doc + data files), parked but not deleted. It is not wired into the app.

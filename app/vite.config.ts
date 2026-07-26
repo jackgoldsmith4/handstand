@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.svg', 'icon-512.svg'],
       manifest: {
-        name: 'Handstand Trainer',
-        short_name: 'Handstand',
-        description: '100-day handstand training program',
+        name: 'Movement Trainer',
+        short_name: 'Movement',
+        description: '100-day bodyweight mobility & strength program',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
         display: 'standalone',

@@ -1,7 +1,40 @@
-import type { DayPlan, ExerciseItem } from '../types'
-import { WRIST_WARMUP } from './warmup'
+import type { DayPlan, ExerciseItem, Phase } from '../types'
 
-// Helper to build a unique exercise id
+// ─── The program is built from twelve exercises, reused throughout. ──────────
+// Numbers step up once per phase (see 100_day_movement_plan.md) — nothing
+// rotates in for variety's sake, and nothing needs more than three progression
+// steps.
+
+const PHASE_LABELS: Record<Phase, string> = {
+  1: 'Open & Activate',
+  2: 'Build Strength Through Range',
+  3: 'Integrate & Flow',
+}
+
+function phaseOf(day: number): Phase {
+  if (day <= 33) return 1
+  if (day <= 67) return 2
+  return 3
+}
+
+// Indexed by phase - 1
+const STRETCH_HOLD = [30, 45, 60]
+const FLEX_HOLD = [40, 55, 75]
+const HANG_HOLD = [20, 35, 50]
+const PUSHUP = [{ sets: 3, reps: 12 }, { sets: 3, reps: 16 }, { sets: 3, reps: 20 }]
+const PULLUP = [{ sets: 3, reps: 5 }, { sets: 4, reps: 6 }, { sets: 5, reps: 8 }]
+const CROW_HOLD = [15, 20, 25]
+const PISTOL_DETAIL = [
+  'Bodyweight squat instead — 3 × 15',
+  'Assisted pistol squat instead — 3 × 5 each leg, hold a support for balance',
+  '3 × 5 each leg, best effort',
+]
+const BRIDGE_DETAIL = [
+  'Glute bridge instead — 3 × 15',
+  'Single-leg glute bridge instead — 3 × 8 each leg',
+  '3 × best hold (10–15s)',
+]
+
 const e = (day: number, idx: number, name: string, detail: string, opts: Partial<ExerciseItem> = {}): ExerciseItem => ({
   id: `d${day}-${idx}`,
   name,
@@ -11,1027 +44,188 @@ const e = (day: number, idx: number, name: string, detail: string, opts: Partial
   ...opts,
 })
 
-const wu = (day: number): ExerciseItem[] =>
-  WRIST_WARMUP.map(w => ({ ...w, id: `d${day}-${w.id}` }))
+// ─── The three daily pillars — present on every training and rest day ────────
 
-// Recovery exercises shown on rest days
-const REST_RECOVERY_BASE: Omit<ExerciseItem, 'id'>[] = [
-  { name: 'Wrist circles', detail: '10 each direction', isWarmup: false, isGoal: false },
-  { name: 'Prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
-  { name: 'Reverse prayer stretch', detail: '30 sec', isWarmup: false, isGoal: false, timerSeconds: 30 },
-  { name: 'Overhead reach stretch', detail: '30 sec each arm', isWarmup: false, isGoal: false, timerSeconds: 30 },
-  { name: 'Puppy pose', detail: '60 sec', isWarmup: false, isGoal: false, timerSeconds: 60 },
-  { name: 'Shoulder dislocates (towel)', detail: '10 slow reps', isWarmup: false, isGoal: false },
+const pecStretch = (day: number, idx: number, ph: Phase) =>
+  e(day, idx, 'Doorway pec stretch', `${STRETCH_HOLD[ph - 1]}s each side`, { timerSeconds: STRETCH_HOLD[ph - 1] })
+
+const hipSwitch = (day: number, idx: number) =>
+  e(day, idx, '90/90 hip switch', '8 controlled switches each direction, no hands')
+
+const forwardFold = (day: number, idx: number, ph: Phase) =>
+  e(day, idx, 'Standing forward fold', `${STRETCH_HOLD[ph - 1]}s, let the head hang heavy`, { timerSeconds: STRETCH_HOLD[ph - 1] })
+
+const squatHold = (day: number, idx: number, ph: Phase) =>
+  e(day, idx, 'Deep squat hold', `hold ${STRETCH_HOLD[ph - 1]}s, heels flat`, { timerSeconds: STRETCH_HOLD[ph - 1] })
+
+// ─── Rotating focus exercises ─────────────────────────────────────────────────
+
+const pushUps = (day: number, idx: number, ph: Phase) => {
+  const { sets, reps } = PUSHUP[ph - 1]
+  return e(day, idx, 'Push-ups', `${sets} × ${reps}`, { sets })
+}
+
+const pullUps = (day: number, idx: number, ph: Phase) => {
+  const { sets, reps } = PULLUP[ph - 1]
+  return e(day, idx, 'Pull-ups', `${sets} × ${reps}`, { sets })
+}
+
+const deadHang = (day: number, idx: number, ph: Phase) => {
+  const s = HANG_HOLD[ph - 1]
+  return e(day, idx, 'Dead hang', `3 × ${s}s hang, shoulder blades relaxed then pulled down`, { sets: 3, timerSeconds: s })
+}
+
+const pistolSquat = (day: number, idx: number, ph: Phase) =>
+  e(day, idx, 'Pistol squat', PISTOL_DETAIL[ph - 1], { sets: 3 })
+
+const bridgePose = (day: number, idx: number, ph: Phase) =>
+  e(day, idx, 'Bridge pose (wheel)', BRIDGE_DETAIL[ph - 1], { sets: 3 })
+
+const crowPose = (day: number, idx: number, ph: Phase) => {
+  const s = CROW_HOLD[ph - 1]
+  const extra = ph === 3 ? ' — try side crow once this feels easy' : ''
+  return e(day, idx, 'Crow pose', `3 × ${s}s hold${extra}`, { sets: 3, timerSeconds: s })
+}
+
+const straddle = (day: number, idx: number, ph: Phase) => {
+  const s = FLEX_HOLD[ph - 1]
+  return e(day, idx, 'Straddle stretch', `${s}s, hinge from the hips with a flat back`, { timerSeconds: s })
+}
+
+const standingSplit = (day: number, idx: number, ph: Phase) => {
+  const s = FLEX_HOLD[ph - 1]
+  return e(day, idx, 'Standing split', `${s}s each leg, hands on floor or blocks for support`, { timerSeconds: s })
+}
+
+// ─── Rest-day recovery — same three pillars, always gentle ───────────────────
+
+export const restRecovery = (day: number): ExerciseItem[] => [
+  e(day, 1, 'Doorway pec stretch', '30s each side, easy stretch', { timerSeconds: 30 }),
+  e(day, 2, '90/90 hip switch', '6 slow, controlled switches each direction'),
+  e(day, 3, 'Standing forward fold', '30s, no forcing it', { timerSeconds: 30 }),
+  e(day, 4, 'Deep squat hold', 'hold 30s, just breathe in the bottom position', { timerSeconds: 30 }),
 ]
 
-export const restRecovery = (day: number): ExerciseItem[] =>
-  REST_RECOVERY_BASE.map((ex, i) => ({ ...ex, id: `d${day}-rec-${i}` }))
+// ─── Weekly rotation (7-day cycle) ────────────────────────────────────────────
 
-// ─── PHASE 1: Days 1–33 ───────────────────────────────────────────────────────
+function trainingExercises(day: number, ph: Phase, weekPos: number): ExerciseItem[] {
+  switch (weekPos) {
+    case 1: // Push
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), forwardFold(day, 3, ph), pushUps(day, 4, ph)]
+    case 2: // Pull + hang time
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), forwardFold(day, 3, ph), pullUps(day, 4, ph), deadHang(day, 5, ph)]
+    case 3: // Legs + backbend
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), forwardFold(day, 3, ph), pistolSquat(day, 4, ph), bridgePose(day, 5, ph)]
+    case 4: // Skill
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), forwardFold(day, 3, ph), crowPose(day, 4, ph)]
+    case 5: // Full-body strength
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), forwardFold(day, 3, ph), pushUps(day, 4, ph), pullUps(day, 5, ph)]
+    default: // 6 — Deep flexibility
+      return [pecStretch(day, 1, ph), hipSwitch(day, 2), squatHold(day, 3, ph), straddle(day, 4, ph), standingSplit(day, 5, ph)]
+  }
+}
 
-const phase1Label = 'Foundation & Conditioning'
+// ─── Milestone / test days ────────────────────────────────────────────────────
 
-// ─── PHASE 2: Days 34–67 ─────────────────────────────────────────────────────
+type MilestoneDef = { title: string; text: string; exercises: (day: number, ph: Phase) => ExerciseItem[] }
 
-const phase2Label = 'Wall Refinement & Kick-Ups'
+const MILESTONES: Record<number, MilestoneDef> = {
+  15: {
+    title: 'Foundation Check',
+    text: 'Day 15 — first checkpoint. No pass/fail: note your deep squat hold time, dead hang time, and max reps on push-ups and pull-ups. You’ll retest at Day 33.',
+    exercises: (day, ph) => [
+      pecStretch(day, 1, ph),
+      forwardFold(day, 2, ph),
+      squatHold(day, 3, ph),
+      deadHang(day, 4, ph),
+      pullUps(day, 5, ph),
+      pushUps(day, 6, ph),
+    ],
+  },
+  33: {
+    title: 'Phase 1 Complete',
+    text: 'Phase 1 complete. Retest everything from Day 15 — the targets below are what Phase 2 will ask of you.',
+    exercises: (day) => [
+      pecStretch(day, 1, 1),
+      forwardFold(day, 2, 1),
+      e(day, 3, 'Deep squat hold', 'hold as long as possible', { timerSeconds: 30, isGoal: true, goalText: 'Target for Phase 2: 45s' }),
+      e(day, 4, 'Dead hang', 'max hang', { timerSeconds: 20, isGoal: true, goalText: 'Target for Phase 2: 3 × 35s' }),
+      e(day, 5, 'Pull-ups', 'max reps', { isGoal: true, goalText: 'Target for Phase 2: 4 × 6' }),
+      e(day, 6, 'Push-ups', 'max reps', { isGoal: true, goalText: 'Target for Phase 2: 3 × 16' }),
+    ],
+  },
+  50: {
+    title: 'Midpoint Check',
+    text: 'Halfway. Pull strength and single-leg squat control are catching up to the mobility you built in Phase 1.',
+    exercises: (day, ph) => [
+      pecStretch(day, 1, ph),
+      hipSwitch(day, 2),
+      pullUps(day, 3, ph),
+      e(day, 4, 'Pistol squat', 'assisted, each leg — note how much support you still need', { sets: 3 }),
+      crowPose(day, 5, ph),
+    ],
+  },
+  67: {
+    title: 'Phase 2 Complete',
+    text: 'Phase 2 complete. Strength through full range is online — Phase 3 is about putting it all together.',
+    exercises: (day) => [
+      pecStretch(day, 1, 2),
+      forwardFold(day, 2, 2),
+      e(day, 3, 'Pull-ups', 'max reps', { isGoal: true, goalText: 'Target for Phase 3: 5 × 8' }),
+      e(day, 4, 'Pistol squat', 'first real attempt — full range or as low as controlled', { sets: 3 }),
+      e(day, 5, 'Crow pose', '3 × best hold', { sets: 3, isGoal: true, goalText: 'Target for Phase 3: 3 × 25s+' }),
+      e(day, 6, 'Bridge pose (wheel)', 'first attempt, wall-assisted if needed', { sets: 3 }),
+    ],
+  },
+  85: {
+    title: 'Late Check',
+    text: 'Final stretch. Everything from here is about deepening what already works.',
+    exercises: (day, ph) => [
+      pecStretch(day, 1, ph),
+      forwardFold(day, 2, ph),
+      pullUps(day, 3, ph),
+      e(day, 4, 'Pistol squat', '3 × best effort each leg', { sets: 3 }),
+      crowPose(day, 5, ph),
+      standingSplit(day, 6, ph),
+    ],
+  },
+  100: {
+    title: 'Capstone: 100 Days of Movement',
+    text: '100 days of daily shoulder, hip, and leg work. Test everything — deep squat, dead hang, pull-ups, push-ups, pistol squat, crow pose, wheel pose, and your forward fold. Whatever the numbers say, you move better than Day 1.',
+    exercises: (day, ph) => [
+      squatHold(day, 1, ph),
+      deadHang(day, 2, ph),
+      pullUps(day, 3, ph),
+      pushUps(day, 4, ph),
+      pistolSquat(day, 5, ph),
+      crowPose(day, 6, ph),
+      bridgePose(day, 7, ph),
+      forwardFold(day, 8, ph),
+    ],
+  },
+}
 
-// ─── PHASE 3: Days 68–100 ────────────────────────────────────────────────────
+// ─── Assemble all 100 days ────────────────────────────────────────────────────
 
-const phase3Label = 'Freestanding Development'
+function buildDay(day: number): DayPlan {
+  const ph = phaseOf(day)
+  const phaseLabel = PHASE_LABELS[ph]
+  const milestone = MILESTONES[day]
 
-export const WORKOUT_DATA: DayPlan[] = [
-  // ── Day 1 ──
-  {
-    day: 1, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(1),
-      e(1,1,'Quadruped rocking','3 × 10', { sets: 3 }),
-      e(1,2,'Hollow body hold','3 × 20 sec', { sets: 3, timerSeconds: 20 }),
-      e(1,3,'Scapular push-ups','3 × 10', { sets: 3 }),
-      e(1,4,'Frog stand','5 attempts, hold as long as possible', { sets: 5 }),
-      e(1,5,'Dead bug','3 × 8 each side', { sets: 3 }),
-      e(1,6,'Glute bridge','3 × 10', { sets: 3 }),
-      e(1,7,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 2 ──
-  {
-    day: 2, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(2),
-      e(2,1,'Pike push-ups','3 × 5', { sets: 3 }),
-      e(2,2,'Hollow body hold','3 × 20 sec', { sets: 3, timerSeconds: 20 }),
-      e(2,3,'Bird dog','3 × 8 each side', { sets: 3 }),
-      e(2,4,'Side plank','2 × 20 sec each side', { sets: 2, timerSeconds: 20 }),
-      e(2,5,'Frog stand','3 × max hold', { sets: 3 }),
-    ],
-  },
-  // ── Day 3 — REST ──
-  { day: 3, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 4 ──
-  {
-    day: 4, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(4),
-      e(4,1,'Hollow body hold','3 × 25 sec', { sets: 3, timerSeconds: 25 }),
-      e(4,2,'Frog stand','3 × max hold', { sets: 3 }),
-      e(4,3,'Pike push-ups','3 × 5', { sets: 3 }),
-      e(4,4,'Dead bug','3 × 10 each side', { sets: 3 }),
-      e(4,5,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 5 ──
-  {
-    day: 5, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(5),
-      e(5,1,'Hollow body hold','3 × 25 sec', { sets: 3, timerSeconds: 25 }),
-      e(5,2,'Frog stand','3 × max hold', { sets: 3 }),
-      e(5,3,'Pike push-ups','3 × 6', { sets: 3 }),
-      e(5,4,'Bird dog','3 × 8 each side', { sets: 3 }),
-      e(5,5,'Thread the needle','10 each side', { sets: 2 }),
-      e(5,6,'Overhead wall stretch','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 6 ──
-  {
-    day: 6, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(6),
-      e(6,1,'Hollow body hold','3 × 30 sec', { sets: 3, timerSeconds: 30 }),
-      e(6,2,'Frog stand','5 × max hold', { sets: 5 }),
-      e(6,3,'Scapular push-ups','3 × 10', { sets: 3 }),
-      e(6,4,'Pike push-ups','3 × 6', { sets: 3 }),
-      e(6,5,'Side plank','3 × 20 sec each side', { sets: 3, timerSeconds: 20 }),
-      e(6,6,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 7 — REST ──
-  { day: 7, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 8 ──
-  {
-    day: 8, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(8),
-      e(8,1,'Hollow body hold','3 × 30 sec', { sets: 3, timerSeconds: 30 }),
-      e(8,2,'Hollow body rocks','3 × 10', { sets: 3 }),
-      e(8,3,'Frog stand','5 × max hold (target: 5 sec)', { sets: 5 }),
-      e(8,4,'Pike push-ups','4 × 6', { sets: 4 }),
-      e(8,5,'Dead bug','3 × 10 each side', { sets: 3 }),
-      e(8,6,'Wall walks','3 × 3 reps', { sets: 3 }),
-    ],
-  },
-  // ── Day 9 ──
-  {
-    day: 9, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(9),
-      e(9,1,'Wall walks','3 × 4 reps', { sets: 3 }),
-      e(9,2,'Hollow body hold','3 × 30 sec', { sets: 3, timerSeconds: 30 }),
-      e(9,3,'Frog stand','5 × max hold', { sets: 5 }),
-      e(9,4,'L-sit tuck hold','3 × 10 sec', { sets: 3, timerSeconds: 10 }),
-      e(9,5,'Pike push-ups','4 × 7', { sets: 4 }),
-      e(9,6,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 10 — REST ──
-  { day: 10, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 11 ──
-  {
-    day: 11, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(11),
-      e(11,1,'Wall walks','3 × 4-5 reps', { sets: 3 }),
-      e(11,2,'Headstand','3 × 10 sec', { sets: 3, timerSeconds: 10 }),
-      e(11,3,'Hollow body hold','3 × 35 sec', { sets: 3, timerSeconds: 35 }),
-      e(11,4,'Frog stand','5 × max hold (target: 8 sec)', { sets: 5 }),
-      e(11,5,'L-sit tuck hold','3 × 12 sec', { sets: 3, timerSeconds: 12 }),
-      e(11,6,'Pike push-ups','4 × 7', { sets: 4 }),
-    ],
-  },
-  // ── Day 12 ──
-  {
-    day: 12, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(12),
-      e(12,1,'Wall walks','4 × 4-5 reps', { sets: 4 }),
-      e(12,2,'Headstand','3 × 15 sec', { sets: 3, timerSeconds: 15 }),
-      e(12,3,'Hollow body hold','3 × 35 sec', { sets: 3, timerSeconds: 35 }),
-      e(12,4,'Frog stand','5 × max hold', { sets: 5 }),
-      e(12,5,'Elevated pike push-ups','3 × 6', { sets: 3 }),
-      e(12,6,'Standing forward fold','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 13 — REST ──
-  { day: 13, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 14 — MILESTONE ──
-  {
-    day: 14, type: 'milestone', phase: 1, phaseLabel: phase1Label,
-    milestoneText: 'Can you hold a frog stand for 10 seconds? Hollow body for 30 seconds? L-sit tuck for 10 seconds? If yes, proceed to Day 15. If not, repeat Days 8–14.',
-    exercises: [
-      ...wu(14),
-      e(14,1,'Frog stand','3 × max hold', { sets: 3, isGoal: true, goalText: 'Goal: 10 seconds' }),
-      e(14,2,'Hollow body hold','3 × max hold', { sets: 3, timerSeconds: 30, isGoal: true, goalText: 'Goal: 30 seconds' }),
-      e(14,3,'L-sit tuck hold','3 × max hold', { sets: 3, timerSeconds: 10, isGoal: true, goalText: 'Goal: 10 seconds' }),
-      e(14,4,'Wall walks','4 × 5 reps', { sets: 4 }),
-      e(14,5,'Headstand','3 × 15 sec', { sets: 3, timerSeconds: 15 }),
-    ],
-  },
-  // ── Day 15 ──
-  {
-    day: 15, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(15),
-      e(15,1,'Chest-to-wall handstand','5 attempts — face wall, hands 15–20 cm away, kick up', { sets: 5, isGoal: true, goalText: 'First attempts — just get feet on wall' }),
-      e(15,2,'Hollow body hold','3 × 35 sec', { sets: 3, timerSeconds: 35 }),
-      e(15,3,'Dead bug','3 × 12 each side', { sets: 3 }),
-      e(15,4,'L-sit tuck hold','3 × 15 sec', { sets: 3, timerSeconds: 15 }),
-      e(15,5,'Wall walks','3 × 5 reps', { sets: 3 }),
-      e(15,6,'Pike push-ups','3 × 8', { sets: 3 }),
-    ],
-  },
-  // ── Day 16 ──
-  {
-    day: 16, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(16),
-      e(16,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(16,2,'Hollow body hold','3 × 40 sec', { sets: 3, timerSeconds: 40 }),
-      e(16,3,'Side plank','3 × 30 sec each side', { sets: 3, timerSeconds: 30 }),
-      e(16,4,'Wall walks','3 × 5 reps', { sets: 3 }),
-      e(16,5,'Pike push-ups','3 × 8', { sets: 3 }),
-      e(16,6,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 17 — REST ──
-  { day: 17, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 18 ──
-  {
-    day: 18, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(18),
-      e(18,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(18,2,'Handstand shrugs','2 × 10 — in chest-to-wall, depress then elevate scapula fully', { sets: 2 }),
-      e(18,3,'Hollow body hold','3 × 40 sec', { sets: 3, timerSeconds: 40 }),
-      e(18,4,'L-sit tuck hold','3 × 15 sec', { sets: 3, timerSeconds: 15 }),
-      e(18,5,'Elevated pike push-ups','3 × 6', { sets: 3 }),
-    ],
-  },
-  // ── Day 19 ──
-  {
-    day: 19, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(19),
-      e(19,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(19,2,'Hollow body hold','3 × 45 sec', { sets: 3, timerSeconds: 45 }),
-      e(19,3,'Bird dog','3 × 10 each side', { sets: 3 }),
-      e(19,4,'Dead hang','3 × 30 sec', { sets: 3, timerSeconds: 30 }),
-      e(19,5,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 20 ──
-  {
-    day: 20, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(20),
-      e(20,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(20,2,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(20,3,'Hollow body hold','3 × 45 sec', { sets: 3, timerSeconds: 45 }),
-      e(20,4,'Side plank','3 × 35 sec each side', { sets: 3, timerSeconds: 35 }),
-      e(20,5,'Full flexibility routine','Forward fold, pigeon, overhead stretch — 10 min', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 21 — REST ──
-  { day: 21, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 22 ──
-  {
-    day: 22, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(22),
-      e(22,1,'Chest-to-wall handstand','5 × max hold (target: 15 sec)', { sets: 5, timerSeconds: 15 }),
-      e(22,2,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(22,3,'Hollow body hold','3 × 45 sec', { sets: 3, timerSeconds: 45 }),
-      e(22,4,'L-sit tuck hold','3 × 20 sec', { sets: 3, timerSeconds: 20 }),
-      e(22,5,'Pike push-ups','3 × 10', { sets: 3 }),
-    ],
-  },
-  // ── Day 23 ──
-  {
-    day: 23, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(23),
-      e(23,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(23,2,'Hollow body hold','3 × 50 sec', { sets: 3, timerSeconds: 50 }),
-      e(23,3,'Elevated pike push-ups','3 × 8 — feet on chair height', { sets: 3 }),
-      e(23,4,'Pigeon pose','60 sec each side', { timerSeconds: 60 }),
-      e(23,5,'Standing forward fold','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 24 — REST ──
-  { day: 24, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 25 ──
-  {
-    day: 25, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(25),
-      e(25,1,'Chest-to-wall handstand','5 × max hold (target: 20 sec)', { sets: 5, timerSeconds: 20 }),
-      e(25,2,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(25,3,'Hollow body hold','3 × 50 sec', { sets: 3, timerSeconds: 50 }),
-      e(25,4,'L-sit tuck hold','3 × 20 sec', { sets: 3, timerSeconds: 20 }),
-      e(25,5,'Pike push-ups','3 × 10', { sets: 3 }),
-      e(25,6,'Dead hang + scapular pulls','3 × 10', { sets: 3 }),
-    ],
-  },
-  // ── Day 26 ──
-  {
-    day: 26, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(26),
-      e(26,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(26,2,'Hollow body hold','3 × 55 sec', { sets: 3, timerSeconds: 55 }),
-      e(26,3,'Side plank','3 × 35 sec each side', { sets: 3, timerSeconds: 35 }),
-      e(26,4,'Pike push-ups','3 × 10', { sets: 3 }),
-      e(26,5,'Puppy pose','60 sec', { timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 27 — REST ──
-  { day: 27, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 28 — MILESTONE ──
-  {
-    day: 28, type: 'milestone', phase: 1, phaseLabel: phase1Label,
-    milestoneText: 'Can you hold a 20-second chest-to-wall handstand? Hollow body for 60 seconds? L-sit tuck for 20 seconds? Great work — keep pushing.',
-    exercises: [
-      ...wu(28),
-      e(28,1,'Chest-to-wall handstand','5 × max hold', { sets: 5, isGoal: true, goalText: 'Goal: 20 second hold' }),
-      e(28,2,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60, isGoal: true, goalText: 'Goal: 60 seconds' }),
-      e(28,3,'L-sit tuck hold','3 × max hold', { sets: 3, timerSeconds: 20, isGoal: true, goalText: 'Goal: 20 seconds' }),
-      e(28,4,'Pike push-ups','3 × 10', { sets: 3 }),
-      e(28,5,'Full flexibility routine','Forward fold, pigeon, overhead stretch — 10 min'),
-    ],
-  },
-  // ── Day 29 ──
-  {
-    day: 29, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(29),
-      e(29,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(29,2,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(29,3,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(29,4,'Dead bug','3 × 15 each side', { sets: 3 }),
-      e(29,5,'Elevated pike push-ups','3 × 8', { sets: 3 }),
-    ],
-  },
-  // ── Day 30 ──
-  {
-    day: 30, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(30),
-      e(30,1,'Chest-to-wall handstand','5 × max hold', { sets: 5 }),
-      e(30,2,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(30,3,'Bird dog','3 × 10 each side', { sets: 3 }),
-      e(30,4,'Side plank','3 × 40 sec each side', { sets: 3, timerSeconds: 40 }),
-      e(30,5,'Pike push-ups','3 × 10', { sets: 3 }),
-    ],
-  },
-  // ── Day 31 ──
-  {
-    day: 31, type: 'training', phase: 1, phaseLabel: phase1Label,
-    exercises: [
-      ...wu(31),
-      e(31,1,'Chest-to-wall handstand','5 × max hold (target: 45 sec)', { sets: 5, timerSeconds: 45 }),
-      e(31,2,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(31,3,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(31,4,'L-sit tuck hold','3 × 25 sec', { sets: 3, timerSeconds: 25 }),
-    ],
-  },
-  // ── Day 32 — REST ──
-  { day: 32, type: 'rest', phase: 1, phaseLabel: phase1Label, exercises: [] },
-  // ── Day 33 — PHASE 1 MILESTONE ──
-  {
-    day: 33, type: 'milestone', phase: 1, phaseLabel: phase1Label,
-    milestoneText: 'PHASE 1 COMPLETE! 60-second chest-to-wall handstand with straight arms and flat back. This is the foundation for everything. If not there yet, spend a few extra days before moving on.',
-    exercises: [
-      ...wu(33),
-      e(33,1,'Chest-to-wall handstand','Attempt a 60 sec continuous hold', { timerSeconds: 60, isGoal: true, goalText: 'Goal: 60 second unbroken hold' }),
-      e(33,2,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(33,3,'L-sit tuck hold','3 × max hold', { sets: 3, timerSeconds: 25, isGoal: true, goalText: 'Goal: 25 seconds' }),
-      e(33,4,'Pike push-ups','3 × 10', { sets: 3 }),
-      e(33,5,'Full shoulder mobility circuit','Dislocates, wall slides, puppy pose — 10 min'),
-    ],
-  },
+  if (milestone) {
+    return {
+      day, type: 'milestone', phase: ph, phaseLabel,
+      milestoneText: milestone.text,
+      exercises: milestone.exercises(day, ph),
+    }
+  }
 
-  // ─── PHASE 2 ───────────────────────────────────────────────────────────────
+  const weekPos = ((day - 1) % 7) + 1
+  if (weekPos === 7) {
+    return { day, type: 'rest', phase: ph, phaseLabel, exercises: [] }
+  }
 
-  // ── Day 34 ──
-  {
-    day: 34, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(34),
-      e(34,1,'Pirouette bail','5 bails each side — kick to wall, overbalance, cartwheel out', { sets: 5, isGoal: true, goalText: 'Learn this NOW — it removes fear of falling' }),
-      e(34,2,'Wall-facing handstand','5 attempts — belly toward wall, forces straight body', { sets: 5, isGoal: true, goalText: 'New: belly to wall forces real alignment' }),
-      e(34,3,'Chest-to-wall handstand','3 × 60 sec (or 5 × max)', { sets: 3, timerSeconds: 60 }),
-      e(34,4,'Handstand shrugs','3 × 10', { sets: 3 }),
-      e(34,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 35 ──
-  {
-    day: 35, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(35),
-      e(35,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(35,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(35,3,'Fingertip pressure drill','3 × 10 shifts — in handstand, shift weight forward to fingertips, hold 3 sec, shift back', { sets: 3, timerSeconds: 3 }),
-      e(35,4,'L-sit tuck hold','3 × 25 sec', { sets: 3, timerSeconds: 25 }),
-      e(35,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 36 — REST ──
-  { day: 36, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 37 ──
-  {
-    day: 37, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(37),
-      e(37,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(37,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(37,3,'Chest-to-wall handstand','3 × max hold', { sets: 3 }),
-      e(37,4,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(37,5,'Full flexibility routine','Pigeon, overhead stretch, puppy pose'),
-    ],
-  },
-  // ── Day 38 ──
-  {
-    day: 38, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(38),
-      e(38,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(38,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(38,3,'Fingertip pressure drill','3 × 10 shifts', { sets: 3 }),
-      e(38,4,'Shoulder taps','3 × 4 per side — in handstand, lift one hand, tap opposite shoulder', { sets: 3 }),
-      e(38,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 39 ──
-  {
-    day: 39, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(39),
-      e(39,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(39,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(39,3,'Chest-to-wall handstand','3 × max hold', { sets: 3 }),
-      e(39,4,'Shoulder taps','3 × 5 per side', { sets: 3 }),
-      e(39,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 40 — REST ──
-  { day: 40, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 41 ──
-  {
-    day: 41, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(41),
-      e(41,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(41,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(41,3,'Shoulder taps','3 × 6 per side', { sets: 3 }),
-      e(41,4,'Kick-up practice','15 attempts — lunge stance, controlled kick, aim to touch wall', { sets: 15, isGoal: true, goalText: 'Controlled drive — do NOT kick hard' }),
-      e(41,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 42 ──
-  {
-    day: 42, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(42),
-      e(42,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(42,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(42,3,'Kick-up practice','15-20 attempts', { sets: 15 }),
-      e(42,4,'Shoulder taps','3 × 6 per side', { sets: 3 }),
-      e(42,5,'Fingertip pressure drill','3 × 10 shifts', { sets: 3 }),
-    ],
-  },
-  // ── Day 43 — REST ──
-  { day: 43, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 44 ──
-  {
-    day: 44, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(44),
-      e(44,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(44,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(44,3,'Kick-up practice','15-20 attempts', { sets: 15 }),
-      e(44,4,'Shoulder taps','3 × 7 per side', { sets: 3 }),
-      e(44,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-      e(44,6,'Full flexibility routine','Pigeon, forward fold, high lunge'),
-    ],
-  },
-  // ── Day 45 ──
-  {
-    day: 45, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(45),
-      e(45,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(45,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(45,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(45,4,'Chest-to-wall handstand','3 × max hold', { sets: 3 }),
-      e(45,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 46 ──
-  {
-    day: 46, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(46),
-      e(46,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(46,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(46,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(46,4,'Shoulder taps','3 × 8 per side', { sets: 3 }),
-      e(46,5,'One-foot peel','3 × 5 each side — in handstand, peel one foot off wall, hold 5 sec', { sets: 3, timerSeconds: 5 }),
-      e(46,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 47 — REST ──
-  { day: 47, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 48 ──
-  {
-    day: 48, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(48),
-      e(48,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(48,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(48,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(48,4,'One-foot peel','3 × 5 each side, 5 sec holds', { sets: 3, timerSeconds: 5 }),
-      e(48,5,'Full flexibility routine','Pigeon, forward fold, high lunge'),
-    ],
-  },
-  // ── Day 49 ──
-  {
-    day: 49, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(49),
-      e(49,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(49,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(49,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(49,4,'One-foot peel','3 × 5 each side, 5 sec holds', { sets: 3, timerSeconds: 5 }),
-      e(49,5,'Shoulder taps','3 × 8 per side', { sets: 3 }),
-    ],
-  },
-  // ── Day 50 ──
-  {
-    day: 50, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(50),
-      e(50,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(50,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(50,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(50,4,'One-foot peel','3 × 5 each side', { sets: 3, timerSeconds: 5 }),
-      e(50,5,'Tuck handstand','5 attempts — kick up, pull knees to chest, hold', { sets: 5, timerSeconds: 3, isGoal: true, goalText: 'Target: 1-3 second holds using fingertip adjustments' }),
-      e(50,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 51 — REST ──
-  { day: 51, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 52 ──
-  {
-    day: 52, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(52),
-      e(52,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(52,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(52,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(52,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(52,5,'One-foot peel','3 × 5 each side', { sets: 3, timerSeconds: 5 }),
-      e(52,6,'Shoulder taps','3 × 8 per side', { sets: 3 }),
-    ],
-  },
-  // ── Day 53 ──
-  {
-    day: 53, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(53),
-      e(53,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(53,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(53,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(53,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(53,5,'Full flexibility routine','Pigeon, overhead stretch, puppy pose'),
-    ],
-  },
-  // ── Day 54 — REST ──
-  { day: 54, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 55 ──
-  {
-    day: 55, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(55),
-      e(55,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(55,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(55,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(55,4,'Tuck handstand','5 × max hold', { sets: 5, timerSeconds: 3, isGoal: true, goalText: 'Target: 3 seconds' }),
-      e(55,5,'L-sit','3 × 5 sec — both legs straight', { sets: 3, timerSeconds: 5 }),
-      e(55,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 56 ──
-  {
-    day: 56, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(56),
-      e(56,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(56,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(56,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(56,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(56,5,'Chest-to-wall handstand','2 × 60 sec', { sets: 2, timerSeconds: 60 }),
-      e(56,6,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 57 ──
-  {
-    day: 57, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(57),
-      e(57,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(57,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(57,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(57,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(57,5,'L-sit','3 × 8 sec', { sets: 3, timerSeconds: 8 }),
-      e(57,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 58 — REST ──
-  { day: 58, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 59 ──
-  {
-    day: 59, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(59),
-      e(59,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(59,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(59,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(59,4,'Tuck handstand','5 × max hold (target: 5 sec)', { sets: 5, timerSeconds: 5 }),
-      e(59,5,'Single-leg extensions','3 × 3 each side — from tuck handstand, extend one leg up', { sets: 3 }),
-    ],
-  },
-  // ── Day 60 — MILESTONE ──
-  {
-    day: 60, type: 'milestone', phase: 2, phaseLabel: phase2Label,
-    milestoneText: 'Halfway there! More than half your kick-ups should be reaching vertical. 5-second tuck holds are the goal. If not there yet, spend a few more days before Phase 3.',
-    exercises: [
-      ...wu(60),
-      e(60,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(60,2,'Wall-facing handstand','5 × max hold', { sets: 5, isGoal: true, goalText: 'Goal: straight body, no banana arch' }),
-      e(60,3,'Kick-up practice','20 attempts', { sets: 20, isGoal: true, goalText: 'Goal: 50%+ reaching vertical with wall catch' }),
-      e(60,4,'Tuck handstand','5 × max hold', { sets: 5, timerSeconds: 5, isGoal: true, goalText: 'Goal: 5 seconds' }),
-      e(60,5,'Single-leg extensions','3 × 3 each side', { sets: 3 }),
-      e(60,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 61 ──
-  {
-    day: 61, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(61),
-      e(61,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(61,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(61,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(61,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(61,5,'Single-leg extensions','3 × 5 each side', { sets: 3 }),
-      e(61,6,'Full flexibility routine','Pigeon, overhead stretch, puppy pose'),
-    ],
-  },
-  // ── Day 62 ──
-  {
-    day: 62, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(62),
-      e(62,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(62,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(62,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(62,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(62,5,'Single-leg extensions','3 × 5 each side', { sets: 3 }),
-      e(62,6,'L-sit','3 × 10 sec', { sets: 3, timerSeconds: 10 }),
-    ],
-  },
-  // ── Day 63 — REST ──
-  { day: 63, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
-  // ── Day 64 ──
-  {
-    day: 64, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(64),
-      e(64,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(64,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(64,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(64,4,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(64,5,'Wall floats','5 tries — from chest-to-wall, peel BOTH feet off wall', { sets: 5, isGoal: true, goalText: 'First freestanding floats — any time counts' }),
-    ],
-  },
-  // ── Day 65 ──
-  {
-    day: 65, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(65),
-      e(65,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(65,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(65,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(65,4,'Wall floats','5-8 attempts', { sets: 6 }),
-      e(65,5,'Shoulder taps','3 × 8 per side', { sets: 3 }),
-      e(65,6,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 66 ──
-  {
-    day: 66, type: 'training', phase: 2, phaseLabel: phase2Label,
-    exercises: [
-      ...wu(66),
-      e(66,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(66,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(66,3,'Kick-up practice','20 attempts', { sets: 20 }),
-      e(66,4,'Wall floats','5-8 attempts', { sets: 6 }),
-      e(66,5,'Tuck handstand','5 × max hold', { sets: 5 }),
-      e(66,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 67 — REST ──
-  { day: 67, type: 'rest', phase: 2, phaseLabel: phase2Label, exercises: [] },
+  return { day, type: 'training', phase: ph, phaseLabel, exercises: trainingExercises(day, ph, weekPos) }
+}
 
-  // ─── PHASE 3 ───────────────────────────────────────────────────────────────
-
-  // ── Day 68 ──
-  {
-    day: 68, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(68),
-      e(68,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(68,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(68,3,'Chest-to-wall with shoulder taps','2 × 60 sec', { sets: 2, timerSeconds: 60 }),
-      e(68,4,'Wall floats','10 attempts', { sets: 10 }),
-      e(68,5,'Freestanding kick-ups','20 attempts — try to float without wall', { sets: 20 }),
-      e(68,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 69 ──
-  {
-    day: 69, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(69),
-      e(69,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(69,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(69,3,'Wall floats','10 attempts', { sets: 10 }),
-      e(69,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(69,5,'L-sit','3 × 12 sec', { sets: 3, timerSeconds: 12 }),
-      e(69,6,'Straddle handstand','5 attempts — kick up, spread legs wide in V-shape', { sets: 5, isGoal: true, goalText: 'Easier to balance than straight — good stepping stone' }),
-    ],
-  },
-  // ── Day 70 ──
-  {
-    day: 70, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(70),
-      e(70,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(70,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(70,3,'Wall floats','10 attempts', { sets: 10 }),
-      e(70,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(70,5,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 71 — REST ──
-  { day: 71, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 72 ──
-  {
-    day: 72, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(72),
-      e(72,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(72,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(72,3,'Wall floats','10 attempts', { sets: 10 }),
-      e(72,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(72,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 73 ──
-  {
-    day: 73, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(73),
-      e(73,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(73,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(73,3,'Wall floats','10 attempts', { sets: 10 }),
-      e(73,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(73,5,'Tuck-to-straight extension','3 × 3 — from tuck, slowly extend both legs straight', { sets: 3 }),
-      e(73,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 74 ──
-  {
-    day: 74, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(74),
-      e(74,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(74,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(74,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(74,4,'Straddle handstand','5 × max hold', { sets: 5 }),
-      e(74,5,'Tuck-to-straight extension','3 × 3', { sets: 3 }),
-      e(74,6,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 75 — MILESTONE ──
-  {
-    day: 75, type: 'milestone', phase: 3, phaseLabel: phase3Label,
-    milestoneText: 'Can you float off the wall for 1–2 seconds? Wall-facing handstand forcing a straight body? That\'s your brain beginning to wire the balance reflex. Every second counts now.',
-    exercises: [
-      ...wu(75),
-      e(75,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(75,2,'Wall-facing handstand','5 × max hold', { sets: 5, isGoal: true, goalText: 'Goal: straight body, no arch — check yourself vs the wall' }),
-      e(75,3,'Wall floats','10 attempts', { sets: 10, isGoal: true, goalText: 'Goal: 1-2 second freestanding float' }),
-      e(75,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(75,5,'Straddle handstand','5 × max hold', { sets: 5 }),
-      e(75,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 76 — REST ──
-  { day: 76, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 77 ──
-  {
-    day: 77, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(77),
-      e(77,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(77,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(77,3,'Wall floats','10 attempts', { sets: 10 }),
-      e(77,4,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(77,5,'Max hold attempts','3 dedicated attempts — full rest between each', { sets: 3 }),
-    ],
-  },
-  // ── Day 78 ──
-  {
-    day: 78, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(78),
-      e(78,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(78,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(78,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(78,4,'Straddle handstand','5 × max hold', { sets: 5 }),
-      e(78,5,'Max hold attempts','3 dedicated attempts', { sets: 3 }),
-      e(78,6,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 79 ──
-  {
-    day: 79, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(79),
-      e(79,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(79,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(79,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(79,4,'Max hold attempts','3 dedicated attempts', { sets: 3 }),
-      e(79,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 80 — REST ──
-  { day: 80, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 81 ──
-  {
-    day: 81, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(81),
-      e(81,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(81,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(81,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(81,4,'Max hold attempts','3 dedicated attempts', { sets: 3 }),
-      e(81,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 82 ──
-  {
-    day: 82, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(82),
-      e(82,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(82,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(82,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(82,4,'Max hold attempts','3 dedicated attempts', { sets: 3 }),
-      e(82,5,'L-sit','3 × 20 sec', { sets: 3, timerSeconds: 20 }),
-      e(82,6,'Tuck-to-straight extension','3 × 5', { sets: 3 }),
-    ],
-  },
-  // ── Day 83 ──
-  {
-    day: 83, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(83),
-      e(83,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(83,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(83,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(83,4,'Max hold attempts','3 dedicated attempts', { sets: 3 }),
-      e(83,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 84 — REST ──
-  { day: 84, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 85 — MILESTONE ──
-  {
-    day: 85, type: 'milestone', phase: 3, phaseLabel: phase3Label,
-    milestoneText: 'Target: a 3–5 second straight-body freestanding handstand. You\'re in the final stretch.',
-    exercises: [
-      ...wu(85),
-      e(85,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(85,2,'Wall-facing handstand','5 × max hold', { sets: 5, isGoal: true, goalText: 'Benchmark: is your alignment visibly straighter vs Week 1?' }),
-      e(85,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(85,4,'Max hold attempts','5 dedicated attempts', { sets: 5, isGoal: true, goalText: 'Goal: 3-5 second straight-body hold' }),
-      e(85,5,'Straddle handstand','5 × max hold', { sets: 5 }),
-      e(85,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 86 ──
-  {
-    day: 86, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(86),
-      e(86,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(86,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(86,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(86,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(86,5,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 87 ──
-  {
-    day: 87, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(87),
-      e(87,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(87,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(87,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(87,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(87,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 88 — REST ──
-  { day: 88, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 89 ──
-  {
-    day: 89, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(89),
-      e(89,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(89,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(89,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(89,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-    ],
-  },
-  // ── Day 90 — MILESTONE ──
-  {
-    day: 90, type: 'milestone', phase: 3, phaseLabel: phase3Label,
-    milestoneText: '10 days left. Can you hold a freestanding handstand for 3–5 seconds? The final push starts now.',
-    exercises: [
-      ...wu(90),
-      e(90,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(90,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(90,3,'Freestanding kick-ups','20 attempts', { sets: 20 }),
-      e(90,4,'Max hold attempts','5 dedicated attempts', { sets: 5, isGoal: true, goalText: 'Goal: 3-5 second freestanding handstand' }),
-      e(90,5,'L-sit','3 × max hold', { sets: 3, timerSeconds: 20, isGoal: true, goalText: 'Benchmark: how long can you hold?' }),
-      e(90,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 91 ──
-  {
-    day: 91, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(91),
-      e(91,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(91,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(91,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(91,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(91,5,'Straddle handstand','5 × max hold', { sets: 5 }),
-      e(91,6,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 92 ──
-  {
-    day: 92, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(92),
-      e(92,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(92,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(92,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(92,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(92,5,'L-sit','3 × max hold', { sets: 3, timerSeconds: 20 }),
-      e(92,6,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 93 — REST ──
-  { day: 93, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 94 ──
-  {
-    day: 94, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(94),
-      e(94,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(94,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(94,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(94,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(94,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 95 ──
-  {
-    day: 95, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(95),
-      e(95,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(95,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(95,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(95,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(95,5,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 96 ──
-  {
-    day: 96, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(96),
-      e(96,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(96,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(96,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(96,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(96,5,'Hollow body hold','3 × 60 sec', { sets: 3, timerSeconds: 60 }),
-    ],
-  },
-  // ── Day 97 — REST ──
-  { day: 97, type: 'rest', phase: 3, phaseLabel: phase3Label, exercises: [] },
-  // ── Day 98 ──
-  {
-    day: 98, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(98),
-      e(98,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(98,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(98,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(98,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(98,5,'Tuck-to-straight extension','5 × 5', { sets: 5 }),
-    ],
-  },
-  // ── Day 99 ──
-  {
-    day: 99, type: 'training', phase: 3, phaseLabel: phase3Label,
-    exercises: [
-      ...wu(99),
-      e(99,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(99,2,'Wall-facing handstand','5 × max hold', { sets: 5 }),
-      e(99,3,'Freestanding kick-ups','25 attempts', { sets: 25 }),
-      e(99,4,'Max hold attempts','5 dedicated attempts', { sets: 5 }),
-      e(99,5,'Full flexibility routine','Pigeon, forward fold, overhead stretch'),
-    ],
-  },
-  // ── Day 100 — FINAL TEST ──
-  {
-    day: 100, type: 'milestone', phase: 3, phaseLabel: phase3Label,
-    milestoneText: 'Day 100. This is it. Record yourself if you can. Give your 10 best attempts. You\'ve earned this.',
-    exercises: [
-      ...wu(100),
-      e(100,1,'Pirouette bail','10 bails', { sets: 10 }),
-      e(100,2,'Freestanding kick-ups','20 warm-up attempts', { sets: 20 }),
-      e(100,3,'Max hold attempts','10 dedicated attempts — rest 3-5 min between each', { sets: 10, isGoal: true, goalText: 'Goal: 5-10 second freestanding straight-body handstand' }),
-    ],
-  },
-]
+export const WORKOUT_DATA: DayPlan[] = Array.from({ length: 100 }, (_, i) => buildDay(i + 1))

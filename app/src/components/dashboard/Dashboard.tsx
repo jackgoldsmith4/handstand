@@ -17,9 +17,9 @@ const nextMilestone = (currentDay: number) => {
 }
 
 const phaseLabels: Record<number, string> = {
-  1: 'Foundation',
-  2: 'Wall & Kick-Ups',
-  3: 'Freestanding',
+  1: 'Open & Activate',
+  2: 'Build Strength',
+  3: 'Integrate & Flow',
 }
 
 export function Dashboard({ currentDay, currentDayPlan, currentDayProgress, completedDays, hasStarted, onStart, onBeginSession }: Props) {
@@ -35,9 +35,9 @@ export function Dashboard({ currentDay, currentDayPlan, currentDayProgress, comp
     return (
       <div className="flex flex-col h-full bg-bg justify-center items-center px-6 text-center"
            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="text-6xl mb-6">🤸</div>
-        <h1 className="text-3xl font-bold text-text mb-3 tracking-tight">Handstand</h1>
-        <p className="text-subtle text-base mb-2 max-w-xs">100 days. Bodyweight only. One goal.</p>
+        <div className="text-6xl mb-6">🧘</div>
+        <h1 className="text-3xl font-bold text-text mb-3 tracking-tight">Movement</h1>
+        <p className="text-subtle text-base mb-2 max-w-xs">100 days. Bodyweight only. Shoulders, hips, and legs — every day.</p>
         <p className="text-subtle text-sm mb-10 max-w-xs">Start today and the app will track your daily training through Day 100.</p>
         <button
           onClick={onStart}
@@ -171,9 +171,9 @@ export function Dashboard({ currentDay, currentDayPlan, currentDayProgress, comp
       <div className="mx-5 mt-5 bg-surface rounded-2xl border border-border px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-3">Your Plan</p>
         {[
-          { phase: 1, label: 'Foundation & Conditioning', days: '1–33', desc: 'Wrist mobility, hollow body, chest-to-wall holds' },
-          { phase: 2, label: 'Wall Refinement & Kick-Ups', days: '34–67', desc: 'Fingertip drills, shoulder taps, tuck handstand' },
-          { phase: 3, label: 'Freestanding', days: '68–100', desc: 'Wall floats, max hold attempts, 5–10 sec goal' },
+          { phase: 1, label: 'Open & Activate', days: '1–33', desc: 'Daily shoulder, hip & leg mobility; deep squat and dead hang baseline' },
+          { phase: 2, label: 'Build Strength Through Range', days: '34–67', desc: 'Pistol squat and wheel pose progressions, longer holds' },
+          { phase: 3, label: 'Integrate & Flow', days: '68–100', desc: 'Full pull-ups, pistols, crow holds, wheel pose, standing splits' },
         ].map(p => (
           <div key={p.phase} className={`flex gap-3 py-2.5 border-b border-border/50 last:border-0 ${currentDayPlan.phase === p.phase ? '' : 'opacity-40'}`}>
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 ${

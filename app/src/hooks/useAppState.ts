@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import type { AppState, DayProgress } from '../types'
 import { WORKOUT_DATA } from '../data/workoutData'
 
-const STORAGE_KEY = 'handstand_app_state'
+const STORAGE_KEY = 'movement_app_state'
 
 const defaultState: AppState = {
   startDate: null,

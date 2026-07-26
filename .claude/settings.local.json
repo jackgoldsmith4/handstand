@@ -96,7 +96,17 @@
       "WebFetch(domain:noembed.com)",
       "WebFetch(domain:barbend.com)",
       "WebFetch(domain:vahvafitness.com)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git mv *)",
+      "Bash(npm run *)",
+      "Bash(npx -y tsx -e ' *)",
+      "Skill(run)",
+      "Bash(npx -y chromium-cli --version)",
+      "Bash(npx -y playwright --version)",
+      "Bash(npm install *)",
+      "Bash(lsof -ti:5173 -sTCP:LISTEN)",
+      "Bash(xargs -r kill)",
+      "Bash(npm uninstall *)"
     ]
   }
 }
